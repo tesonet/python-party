@@ -3,7 +3,7 @@
 import string
 import unittest2
 
-from find import Soundex
+from find import Soundex, rating
 
 
 class TestDrop(unittest2.TestCase):
@@ -102,3 +102,78 @@ class TestDrop(unittest2.TestCase):
         for string, exp_result in self.drop_aeiouyhw_cases:
             result = Soundex().drop_aeiouyhw(string)
             self.assertEqual(result, exp_result, "Wrong drop result.")
+
+
+class TestRating(unittest2.TestCase):
+    """Test Soundex rating method."""
+
+    def test_rating(self):
+        """
+        Using this algorithm, both "Robert" and "Rupert" return the same
+        string "R163" while "Rubin" yields "R150".
+
+        "Ashcraft" and "Ashcroft" both yield "A261" and not "A226"
+        (the chars 's' and 'c' in the name would receive a single number
+        of 2 and not 22 since an 'h' lies in between them).
+
+        "Tymczak" yields "T522" not "T520" (the chars 'z' and 'k' in the
+        name are coded as 2 twice since a vowel lies in between them).
+
+        "Pfister" yields "P236" not "P123" (the first two letters have
+        the same number and are coded once as 'P').
+        """
+        expected = (
+            # Tests from wikipedia.
+            ("Robert", "R163"),
+            ("Rubin", "R150"),
+            ("Ashcraft", "A261"),
+            ("Ashcroft", "A261"),
+            ("Tymczak", "T522"),
+            ("Pfister", "P236"),
+
+            # Additional tests for too short strings.
+            ("Aciu", "A200"),
+            ("Tsun", "T250"),
+            ("A", "A000"),
+        )
+        for string, res in expected:
+            self.assertEqual(rating(string), res)
+
+    def test_rating_raises_on_empty(self):
+        """Should raise when empty string is passed."""
+        with self.assertRaises(ValueError):
+            rating('')
+
+    def test_rating_raises_on_not_string(self):
+        """Should raise when empty string is passed."""
+        with self.assertRaises(TypeError):
+            rating(1)
+        with self.assertRaises(TypeError):
+            rating(TypeError)
+        with self.assertRaises(TypeError):
+            rating(Soundex(''))
+        with self.assertRaises(TypeError):
+            rating(False)
+        with self.assertRaises(TypeError):
+            rating(True)
+        with self.assertRaises(TypeError):
+            rating(None)
+        with self.assertRaises(TypeError):
+            rating({})
+        with self.assertRaises(TypeError):
+            rating([])
+        with self.assertRaises(TypeError):
+            rating(tuple())
+        with self.assertRaises(TypeError):
+            rating(set())
+
+    def test_rating_raises_on_string_not_only_letters(self):
+        """Should raise when empty string is passed."""
+        with self.assertRaises(ValueError):
+            rating("1")
+        with self.assertRaises(ValueError):
+            rating("Ali3a3a")
+        with self.assertRaises(ValueError):
+            rating("Užantis")
+
+
