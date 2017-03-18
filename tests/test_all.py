@@ -2,6 +2,8 @@
 
 import unittest2
 
+from find import Soundex
+
 
 class TestAll(unittest2.TestCase):
     """Starter Test Suite."""
@@ -10,6 +12,7 @@ class TestAll(unittest2.TestCase):
         """Setup common data."""
         super().setUp()
 
-    def test_2_plus_2(self):
-        """2 + 2 = 4?"""
-        self.assertEqual(2+2, 4, "Sum incorrect.")
+    def test_rating(self):
+        """"""
+        s = Soundex('123')
+        self.assertEqual(s.rating, 3)
