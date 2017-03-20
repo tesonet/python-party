@@ -131,7 +131,7 @@ def rating(string: str) -> str:
     step_four = step_three[0] + drop_letters(step_three[1:], 'aeiouy')
     step_five = step_four
     if step_three[0].isdigit():
-        step_five[0] = first_letter
+        step_five = first_letter + step_five[1:]
     step_six = ''
     for num in range(4):
         try:
