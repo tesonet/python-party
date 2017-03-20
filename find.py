@@ -141,14 +141,23 @@ def rating(string: str) -> str:
     return step_six
 
 
+def sanitize_string(word):
+    """Returned list of sanitized words from the string."""
+    return re.compile(r'[a-zA-Z]+').findall(word)
+
+
 @click.command()
 @click.argument('file', type=click.File('rb'))
 @click.argument('string')
 def main(file, string):
     """Main entry to script"""
-    # TODO Rank all strings inside.
-    click.echo(f"String to be found: {string}")
-    click.echo(file.read())
+    # TODO Lazify file read and feed to sanitation.
+    for line in file:
+        words = line.decode('utf-8')
+        sanitized_words = sanitize_string(words)
+        for word in sanitized_words:
+            # TODO Save the list or update the list on demand.
+            click.echo((word, rating(word)))
 
 
 if __name__ == '__main__':

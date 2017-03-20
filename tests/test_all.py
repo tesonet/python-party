@@ -3,7 +3,7 @@
 import string
 import unittest2
 
-from find import Soundex, rating
+from find import Soundex, rating, sanitize_string
 
 
 class TestDrop(unittest2.TestCase):
@@ -177,3 +177,17 @@ class TestRating(unittest2.TestCase):
             rating("Užantis")
 
 
+class TestMain(unittest2.TestCase):
+    """Tests for main routine."""
+
+    def test_sanitize_string(self):
+        """Should return list of words, ascii only."""
+        cases = (
+            ("abc cde efg", ["abc", "cde", "efg"]),
+            ("In the glorious Rome", ["In", "the", "glorious", "Rome"]),
+            ("1'm n07 5ur3 ab0u7 7h15", ["m", "n", "ur", "ab", "u", "h"]),
+            ("Some\nmulti-line", ["Some", "multi", "line"]),
+            ("Listeni/ˌlɪθuːˈeɪniə/,[11][12][13]", ["Listeni", "l", "u", "e", "ni"]),
+        )
+        for start, expected in cases:
+            self.assertEqual(sanitize_string(start), expected)
