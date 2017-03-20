@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 
+import click
 import re
 
 
@@ -138,3 +139,17 @@ def rating(string: str) -> str:
         except IndexError:
             step_six += '0'
     return step_six
+
+
+@click.command()
+@click.argument('file', type=click.File('rb'))
+@click.argument('string')
+def main(file, string):
+    """Main entry to script"""
+    # TODO Rank all strings inside.
+    click.echo(f"String to be found: {string}")
+    click.echo(file.read())
+
+
+if __name__ == '__main__':
+    main()
