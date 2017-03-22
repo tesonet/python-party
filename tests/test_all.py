@@ -3,7 +3,7 @@
 import string
 import unittest2
 
-from find import Soundex, rating, sanitize_string
+from find import Soundex, rating, sanitize_string, diff_score
 
 
 class TestDrop(unittest2.TestCase):
@@ -201,3 +201,47 @@ class TestMain(unittest2.TestCase):
         )
         for start, expected in cases:
             self.assertEqual(sanitize_string(start), expected)
+
+
+class TestDiffRanking(unittest2.TestCase):
+    """Tests for calculation of difference between ranked words."""
+
+    def test_diff_score_same(self):
+        """Should return 0 for diff score, when same ratings found."""
+        cases = (
+            ('T123', 'T123', 0),
+            ('X000', 'X000', 0),
+            ('A290', 'A290', 0),
+        )
+        for str1, str2, exp in cases:
+            self.assertEqual(diff_score(str1, str2), exp)
+
+    def test_diff_score_no_common(self):
+        """Should return -1 if strings are completely different."""
+        cases = (
+            ('T123', 'A987', -1),
+            ('E482', 'X000', -1),
+            ('P576', 'C333', -1),
+        )
+        for str1, str2, exp in cases:
+            self.assertEqual(diff_score(str1, str2), exp)
+
+    def test_diff_score_numbers_diff(self):
+        """Should return difference in ratings, when only numbers differ."""
+        cases = (
+            ('T123', 'T156', 33),
+            ('E482', 'E180', 302),
+            ('P576', 'P577', 1),
+        )
+        for str1, str2, exp in cases:
+            self.assertEqual(diff_score(str1, str2), exp)
+
+    def test_diff_score_letter_diff(self):
+        """Should return +1000 score if letters differ."""
+        cases = (
+            ('T123', 'U156', 1033),
+            ('A482', 'Z180', 1302),
+            ('A576', 'B577', 1001),
+        )
+        for str1, str2, exp in cases:
+            self.assertEqual(diff_score(str1, str2), exp)

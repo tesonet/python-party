@@ -1,7 +1,10 @@
 # -*- encoding: utf-8 -*-
 
-import click
+from functools import lru_cache
+import operator
 import re
+
+import click
 
 
 class Soundex(object):
@@ -76,6 +79,7 @@ def merge_duplicates(string: str) -> str:
     return res
 
 
+@lru_cache(maxsize=None)
 def rating(string: str) -> str:
     """
     Return American Soundex rating for the given string.
@@ -124,9 +128,26 @@ def rating(string: str) -> str:
     return step_six
 
 
-def sanitize_string(word):
+def sanitize_string(word: str) -> list:
     """Returned list of sanitized words from the string."""
     return re.compile(r'[a-zA-Z]+').findall(word)
+
+
+def diff_score(base: str, opp: str) -> int:
+    """Give difference score between `base` and `opp` strings."""
+    score = 0
+    # Same.
+    if base == opp:
+        return -1
+    # Completely different.
+    elif not set(base) & set(opp):
+        return -1
+    # First letter coincides.
+    if base[0] != opp[0]:
+        score += 1000
+    # The numerical value of rating.
+    score += abs(int(base[1:]) - int(opp[1:]))
+    return score
 
 
 @click.command()
@@ -135,12 +156,16 @@ def sanitize_string(word):
 def main(file, string):
     """Main entry to script"""
     # TODO Lazify file read and feed to sanitation.
+    rated_words = {}
     for line in file:
         words = line.decode('utf-8')
         sanitized_words = sanitize_string(words)
         for word in sanitized_words:
-            # TODO Save the list or update the list on demand.
-            click.echo((word, rating(word)))
+            word_rating = rating(word)
+            rated_words[word] = word_rating
+    # TODO Clean up.
+    from pprint import pprint
+    pprint(sorted(rated_words.items(), key=operator.itemgetter(1)))
 
 
 if __name__ == '__main__':
