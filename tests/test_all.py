@@ -3,7 +3,7 @@
 import string
 import unittest2
 
-from find import Soundex, rating, sanitize_string, diff_score
+from find import Soundex, soundex, sanitize_string, diff_score
 
 
 class TestDrop(unittest2.TestCase):
@@ -104,10 +104,10 @@ class TestDrop(unittest2.TestCase):
             self.assertEqual(result, exp_result, "Wrong drop result.")
 
 
-class TestRating(unittest2.TestCase):
+class TestSoundex(unittest2.TestCase):
     """Test Soundex rating method."""
 
-    def test_rating(self):
+    def test_soundex(self):
         """
         Using this algorithm, both "Robert" and "Rupert" return the same
         string "R163" while "Rubin" yields "R150".
@@ -137,9 +137,9 @@ class TestRating(unittest2.TestCase):
             ("A", "a000"),
         )
         for string, res in expected:
-            self.assertEqual(rating(string), res)
+            self.assertEqual(soundex(string), res)
 
-    def test_raiting_ignores_case(self):
+    def test_soundex_ignores_case(self):
         """Should rank as if lowercase was submitted."""
         expected = (
             ("Rubin", "r150"),
@@ -147,44 +147,44 @@ class TestRating(unittest2.TestCase):
             ("rUbiN", "r150"),
         )
         for string, res in expected:
-            self.assertEqual(rating(string), res)
+            self.assertEqual(soundex(string), res)
 
-    def test_rating_raises_on_empty(self):
+    def test_soundex_raises_on_empty(self):
         """Should raise when empty string is passed."""
         with self.assertRaises(ValueError):
-            rating('')
+            soundex('')
 
-    def test_rating_raises_on_not_string(self):
+    def test_soundex_raises_on_not_string(self):
         """Should raise when empty string is passed."""
         with self.assertRaises(TypeError):
-            rating(1)
+            soundex(1)
         with self.assertRaises(TypeError):
-            rating(TypeError)
+            soundex(TypeError)
         with self.assertRaises(TypeError):
-            rating(Soundex(''))
+            soundex(Soundex(''))
         with self.assertRaises(TypeError):
-            rating(False)
+            soundex(False)
         with self.assertRaises(TypeError):
-            rating(True)
+            soundex(True)
         with self.assertRaises(TypeError):
-            rating(None)
+            soundex(None)
         with self.assertRaises(TypeError):
-            rating({})
+            soundex({})
         with self.assertRaises(TypeError):
-            rating([])
+            soundex([])
         with self.assertRaises(TypeError):
-            rating(tuple())
+            soundex(tuple())
         with self.assertRaises(TypeError):
-            rating(set())
+            soundex(set())
 
-    def test_rating_raises_on_string_not_only_letters(self):
+    def test_soundex_raises_on_string_not_only_letters(self):
         """Should raise when empty string is passed."""
         with self.assertRaises(ValueError):
-            rating("1")
+            soundex("1")
         with self.assertRaises(ValueError):
-            rating("Ali3a3a")
+            soundex("Ali3a3a")
         with self.assertRaises(ValueError):
-            rating("Užantis")
+            soundex("Užantis")
 
 
 class TestMain(unittest2.TestCase):

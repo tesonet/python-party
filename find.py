@@ -80,7 +80,7 @@ def merge_duplicates(string: str) -> str:
 
 
 @lru_cache(maxsize=None)
-def rating(string: str) -> str:
+def soundex(string: str) -> str:
     """
     Return American Soundex rating for the given string.
     
@@ -159,12 +159,12 @@ def main(file, string):
     WORDS_TO_FIND = 5
     # TODO Keep in an object for testability.
     diffs = {2000: "No words found."}
-    base_rating = rating(string)
+    base_rating = soundex(string)
     for line in file:
         words = line.decode('utf-8')
         sanitized_words = sanitize_string(words)
         for word in sanitized_words:
-            word_rating = rating(word)
+            word_rating = soundex(word)
             diff = diff_score(base_rating, word_rating)
             if diff not in diffs:
                 max_diff = max(diffs)
