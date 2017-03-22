@@ -124,17 +124,27 @@ class TestRating(unittest2.TestCase):
         """
         expected = (
             # Tests from wikipedia.
-            ("Robert", "R163"),
-            ("Rubin", "R150"),
-            ("Ashcraft", "A261"),
-            ("Ashcroft", "A261"),
-            ("Tymczak", "T522"),
-            ("Pfister", "P236"),
+            ("Robert", "r163"),
+            ("rubin", "r150"),
+            ("Ashcraft", "a261"),
+            ("ashcroft", "a261"),
+            ("Tymczak", "t522"),
+            ("Pfister", "p236"),
 
             # Additional tests for too short strings.
-            ("Aciu", "A200"),
-            ("Tsun", "T250"),
-            ("A", "A000"),
+            ("Aciu", "a200"),
+            ("tsun", "t250"),
+            ("A", "a000"),
+        )
+        for string, res in expected:
+            self.assertEqual(rating(string), res)
+
+    def test_raiting_ignores_case(self):
+        """Should rank as if lowercase was submitted."""
+        expected = (
+            ("Rubin", "r150"),
+            ("rubin", "r150"),
+            ("rUbiN", "r150"),
         )
         for string, res in expected:
             self.assertEqual(rating(string), res)

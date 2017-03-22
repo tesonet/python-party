@@ -60,24 +60,6 @@ def assign_digits(string: str) -> str:
         ord('m'): ord('5'),
         ord('n'): ord('5'),
         ord('r'): ord('6'),
-        ord('b'.upper()): ord('1'),
-        ord('f'.upper()): ord('1'),
-        ord('p'.upper()): ord('1'),
-        ord('v'.upper()): ord('1'),
-        ord('c'.upper()): ord('2'),
-        ord('g'.upper()): ord('2'),
-        ord('j'.upper()): ord('2'),
-        ord('k'.upper()): ord('2'),
-        ord('q'.upper()): ord('2'),
-        ord('s'.upper()): ord('2'),
-        ord('x'.upper()): ord('2'),
-        ord('z'.upper()): ord('2'),
-        ord('d'.upper()): ord('3'),
-        ord('t'.upper()): ord('3'),
-        ord('l'.upper()): ord('4'),
-        ord('m'.upper()): ord('5'),
-        ord('n'.upper()): ord('5'),
-        ord('r'.upper()): ord('6'),
     }
     return string.translate(_map)
 
@@ -124,6 +106,7 @@ def rating(string: str) -> str:
         raise ValueError("Need at least one char in the string.")
     if re.search(r'[^a-zA-Z]+', string) is not None:
         raise ValueError("Only ASCII letters expected.")
+    string = string.lower()
     first_letter = string[0]
     step_one = drop_letters(string[1:], 'hw')
     step_two = assign_digits(first_letter + step_one)
