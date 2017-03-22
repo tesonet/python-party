@@ -138,10 +138,10 @@ def diff_score(base: str, opp: str) -> int:
     score = 0
     # Same.
     if base == opp:
-        return -1
+        return 0
     # Completely different.
     elif not set(base) & set(opp):
-        return -1
+        return 2000
     # First letter coincides.
     if base[0] != opp[0]:
         score += 1000
@@ -156,16 +156,25 @@ def diff_score(base: str, opp: str) -> int:
 def main(file, string):
     """Main entry to script"""
     # TODO Lazify file read and feed to sanitation.
-    rated_words = {}
+    WORDS_TO_FIND = 5
+    # TODO Keep in an object for testability.
+    diffs = {2000: "No words found."}
+    base_rating = rating(string)
     for line in file:
         words = line.decode('utf-8')
         sanitized_words = sanitize_string(words)
         for word in sanitized_words:
             word_rating = rating(word)
-            rated_words[word] = word_rating
+            diff = diff_score(base_rating, word_rating)
+            if diff not in diffs:
+                max_diff = max(diffs)
+                if max_diff > diff:
+                    if diff not in diffs and len(diffs) >= WORDS_TO_FIND:
+                        diffs.pop(max_diff)
+                    diffs[diff] = word
     # TODO Clean up.
     from pprint import pprint
-    pprint(sorted(rated_words.items(), key=operator.itemgetter(1)))
+    pprint(sorted(diffs.items(), key=operator.itemgetter(0)))
 
 
 if __name__ == '__main__':

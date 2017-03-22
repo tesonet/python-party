@@ -217,11 +217,11 @@ class TestDiffRanking(unittest2.TestCase):
             self.assertEqual(diff_score(str1, str2), exp)
 
     def test_diff_score_no_common(self):
-        """Should return -1 if strings are completely different."""
+        """Should return 2000 if strings are completely different."""
         cases = (
-            ('T123', 'A987', -1),
-            ('E482', 'X000', -1),
-            ('P576', 'C333', -1),
+            ('T123', 'A987', 2000),
+            ('E482', 'X000', 2000),
+            ('P576', 'C333', 2000),
         )
         for str1, str2, exp in cases:
             self.assertEqual(diff_score(str1, str2), exp)
