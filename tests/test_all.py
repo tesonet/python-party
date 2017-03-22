@@ -206,6 +206,11 @@ class TestMain(unittest2.TestCase):
 class TestDiffRanking(unittest2.TestCase):
     """Tests for calculation of difference between ranked words."""
 
+    def _test_diff_score(self, cases: tuple, msg=''):
+        """Helper for testing cases of `diff_score` tests."""
+        for str1, str2, exp in cases:
+            self.assertEqual(diff_score(str1, str2), exp, msg)
+
     def test_diff_score_same(self):
         """Should return 0 for diff score, when same ratings found."""
         cases = (
@@ -213,8 +218,8 @@ class TestDiffRanking(unittest2.TestCase):
             ('X000', 'X000', 0),
             ('A290', 'A290', 0),
         )
-        for str1, str2, exp in cases:
-            self.assertEqual(diff_score(str1, str2), exp)
+        msg = "0 should have been returned for the same ratings."
+        self._test_diff_score(cases, msg)
 
     def test_diff_score_no_common(self):
         """Should return 2000 if strings are completely different."""
@@ -223,8 +228,8 @@ class TestDiffRanking(unittest2.TestCase):
             ('E482', 'X000', 2000),
             ('P576', 'C333', 2000),
         )
-        for str1, str2, exp in cases:
-            self.assertEqual(diff_score(str1, str2), exp)
+        msg = "2000 whould have been returned for completely different ratings."
+        self._test_diff_score(cases, msg)
 
     def test_diff_score_numbers_diff(self):
         """Should return difference in ratings, when only numbers differ."""
@@ -233,8 +238,9 @@ class TestDiffRanking(unittest2.TestCase):
             ('E482', 'E180', 302),
             ('P576', 'P577', 1),
         )
-        for str1, str2, exp in cases:
-            self.assertEqual(diff_score(str1, str2), exp)
+        msg = ("Difference in numerical values should have been returned for "
+               "strings with the same first letter.")
+        self._test_diff_score(cases, msg)
 
     def test_diff_score_letter_diff(self):
         """Should return +1000 score if letters differ."""
@@ -243,5 +249,6 @@ class TestDiffRanking(unittest2.TestCase):
             ('A482', 'Z180', 1302),
             ('A576', 'B577', 1001),
         )
-        for str1, str2, exp in cases:
-            self.assertEqual(diff_score(str1, str2), exp)
+        msg = ("Score was not increased by 1000 for ratings of different "
+               "first letter.")
+        self._test_diff_score(cases, msg)
