@@ -150,15 +150,44 @@ def diff_score(base: str, opp: str) -> int:
     return score
 
 
+class Ranker(object):
+    """Class for holding the list of highest ranking words."""
+
+    def __init__(self, limit=5):
+        # Checks.
+        if not isinstance(limit, int) or isinstance(limit, bool):
+            raise TypeError("Only integers allowed for `limit`.")
+        elif limit <= 0:
+            raise ValueError("Only positive values allowed for `limit`.")
+        # Assignments.
+        self.results = {
+            2000: "No words found."
+        }
+        self.limit = limit
+
+    def add_word(self, score: int, word: str):
+        """Add word to results, if worthy."""
+        if score not in self.results:
+            max_diff = max(self.results)
+            if score < max_diff:
+                if len(self.results) >= self.limit:
+                    self.results.pop(max_diff)
+                self.results[score] = word
+
+    def get_results(self) -> list:
+        """Return results sorted by key."""
+        if len(self.results) > 1 and 2000 in self.results:
+            self.results.pop(2000)
+        return sorted(self.results.items(), key=operator.itemgetter(0))
+
+
 @click.command()
 @click.argument('file', type=click.File('rb'))
 @click.argument('string')
 def main(file, string):
-    """Main entry to script"""
+    """Main entry to script."""
     # TODO Lazify file read and feed to sanitation.
-    WORDS_TO_FIND = 5
-    # TODO Keep in an object for testability.
-    diffs = {2000: "No words found."}
+    ratings = Ranker()
     base_rating = soundex(string)
     for line in file:
         words = line.decode('utf-8')
@@ -166,15 +195,10 @@ def main(file, string):
         for word in sanitized_words:
             word_rating = soundex(word)
             diff = diff_score(base_rating, word_rating)
-            if diff not in diffs:
-                max_diff = max(diffs)
-                if max_diff > diff:
-                    if diff not in diffs and len(diffs) >= WORDS_TO_FIND:
-                        diffs.pop(max_diff)
-                    diffs[diff] = word
+            ratings.add_word(diff, word)
     # TODO Clean up.
     from pprint import pprint
-    pprint(sorted(diffs.items(), key=operator.itemgetter(0)))
+    pprint(ratings.get_results())
 
 
 if __name__ == '__main__':
