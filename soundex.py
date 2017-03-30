@@ -1,5 +1,7 @@
 def count_soundex(word):
     """ Soundex algorithm """
+    if not word:
+        return False
     word = word.upper()
     first_letter_index = 0
     for i in word:
