@@ -1,4 +1,5 @@
 import unittest
+
 from soundex import count_soundex
 
 

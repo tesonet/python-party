@@ -28,6 +28,7 @@ if input_validation(sys.argv):
     search_word_code = count_soundex(sys.argv[2])
     search_word_number = int(search_word_code[1:])
     similar_soundex = {}
+
     with fileinput.FileInput(sys.path[0] + '/' + sys.argv[1]) as file:
         for line in file:
             for word in line.split(' '):
@@ -37,12 +38,14 @@ if input_validation(sys.argv):
                 word = word.strip(',')
                 word = word.strip('()')
                 word = word.strip('[]')
+                word = word.strip('.')
                 word_soundex = count_soundex(word)
                 if word_soundex and word_soundex[0] == search_word_code[0]:
                     if not similar_soundex.get(word_soundex):
                         similar_soundex[word_soundex] = [word]
                     else:
                         similar_soundex[word_soundex].append(word)
+
     similar_soundex_keys = [d for d in similar_soundex.keys()]
     similar_soundex_keys = sorted(similar_soundex_keys)
     for index, i in enumerate(similar_soundex_keys):
@@ -67,6 +70,27 @@ if input_validation(sys.argv):
 
     return_list = similar_soundex.get(search_word_code[0] + str(similar_soundex_keys[matched_index]))
 
-
-
-
+    other_values = list()
+    if len(set(return_list)) < 5:
+        for number in range(1, 5):
+            try:
+                higher_element = similar_soundex_keys[matched_index+number]
+                other_values.append([higher_element, abs(higher_element - search_word_number)])
+            except IndexError:
+                pass
+            try:
+                lower_element = similar_soundex_keys[matched_index-number]
+                other_values.append([lower_element, abs(lower_element - search_word_number)])
+            except IndexError:
+                pass
+        other_values = sorted(other_values, key=lambda x: x[1])
+        for i in other_values:
+            return_list += similar_soundex.get(search_word_code[0] + str(i[0]))
+            if len(set(return_list)) >= 5:
+                break
+    new_l = list()
+    for i in return_list:
+        if not i in new_l:
+            new_l.append(i)
+        if len(new_l) == 5:
+            break
