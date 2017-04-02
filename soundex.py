@@ -1,16 +1,29 @@
+def is_alpha(character):
+    """ Helper method for determination whether a character is a letter or not"""
+    try:
+        return character.encode('ascii').isalpha()
+    except:
+        return False
+
+
 def count_soundex(word):
     """ Soundex algorithm """
     if not word:
         return False
     word = word.upper()
     first_letter_index = 0
+
+    """ Getting the first LETTER from the word, ignoring other symbols as first letter. """
     for i in word:
-        if i.isalpha():
+        if is_alpha(i):
             first_letter_index = word.index(i)
             break
-    coded_word = ""
-    coded_word += word[first_letter_index]
 
+    coded_word = word[first_letter_index]
+
+    """ Soundex constants. H and W letters are coded to # sign, because of checking whether it lies
+    between two same number codes
+    """
     CONSTANTS = {
         "AEIOUY": ".",
         "HW": "#",
