@@ -1,3 +1,8 @@
+# My comments:
+1) Thank you for the interesting task.
+2) I've chosen my code line length of 99 chars (PEP8).
+3) I hope that I've fulfilled your requirements.
+
 # Task for Great Python developer
 
 If you found this task it means we are looking for you!
