@@ -211,22 +211,25 @@ def do_concurrent(base_rating, file):
 @click.command()
 @click.argument('file', type=click.File('rb'))
 @click.argument('string')
-def main(file, string):
+@click.option('--concurrent', default=False)
+def main(file, string, concurrent):
     """Main entry to script."""
     # TODO Lazify file read and feed to sanitation.
     base_rating = soundex(string)
-    res = do_concurrent(base_rating, file)
+    if not concurrent:
+        res = Ranker()
+        base_rating = soundex(string)
+        for line in file:
+            words = line.decode('utf-8')
+            sanitized_words = sanitize_string(words)
+            for word in sanitized_words:
+                word_rating = soundex(word)
+                diff = diff_score(base_rating, word_rating)
+                res.add_word(diff, word)
+    else:
+        res = do_concurrent(base_rating, file)
 
-    # ratings = Ranker()
-    # base_rating = soundex(string)
-    # for line in file:
-    #     words = line.decode('utf-8')
-    #     sanitized_words = sanitize_string(words)
-    #     for word in sanitized_words:
-    #         word_rating = soundex(word)
-    #         diff = diff_score(base_rating, word_rating)
-    #         ratings.add_word(diff, word)
-    # # TODO Clean up.
+    # TODO Clean up.
     from pprint import pprint
     # pprint(ratings.get_results())
     pprint(res.get_results())
