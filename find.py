@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-
+from concurrent.futures import ProcessPoolExecutor, wait, as_completed
 from functools import lru_cache
 import operator
 import re
@@ -181,25 +181,55 @@ class Ranker(object):
         return sorted(self.results.items(), key=operator.itemgetter(0))
 
 
+def wrap_soundex(word):
+    return word, soundex(word)
+
+
+def wrap_diff_score(base_rating, rating, word):
+    return word, diff_score(base_rating, rating)
+
+
+def do_concurrent(base_rating, file):
+    ratings = Ranker()
+    rates = []
+    diffs = []
+    with ProcessPoolExecutor(max_workers=5) as executor:
+        for line in file:
+            words = sanitize_string(line.decode('utf-8'))
+            for word in words:
+                rates.append(executor.submit(wrap_soundex, word))
+    with ProcessPoolExecutor(max_workers=5) as exec2:
+        for wrapped_soundex in as_completed(rates):
+            word, rating = wrapped_soundex.result()
+            diffs.append(exec2.submit(wrap_diff_score, base_rating, rating, word))
+    for wrapped_diff in as_completed(diffs):
+        word, diff = wrapped_diff.result()
+        ratings.add_word(diff, word)
+    return ratings
+
+
 @click.command()
 @click.argument('file', type=click.File('rb'))
 @click.argument('string')
 def main(file, string):
     """Main entry to script."""
     # TODO Lazify file read and feed to sanitation.
-    ratings = Ranker()
     base_rating = soundex(string)
-    for line in file:
-        words = line.decode('utf-8')
-        sanitized_words = sanitize_string(words)
-        for word in sanitized_words:
-            word_rating = soundex(word)
-            diff = diff_score(base_rating, word_rating)
-            ratings.add_word(diff, word)
-    # TODO Clean up.
-    from pprint import pprint
-    pprint(ratings.get_results())
+    res = do_concurrent(base_rating, file)
 
+    # ratings = Ranker()
+    # base_rating = soundex(string)
+    # for line in file:
+    #     words = line.decode('utf-8')
+    #     sanitized_words = sanitize_string(words)
+    #     for word in sanitized_words:
+    #         word_rating = soundex(word)
+    #         diff = diff_score(base_rating, word_rating)
+    #         ratings.add_word(diff, word)
+    # # TODO Clean up.
+    from pprint import pprint
+    # pprint(ratings.get_results())
+    pprint(res.get_results())
 
 if __name__ == '__main__':
     main()
