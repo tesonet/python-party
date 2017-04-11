@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
-from concurrent.futures import ProcessPoolExecutor, wait, as_completed
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, wait, as_completed
+import timeit
 from functools import lru_cache
 import operator
 import re
@@ -215,8 +216,10 @@ def do_concurrent(base_rating, file):
 def main(file, string, concurrent):
     """Main entry to script."""
     # TODO Lazify file read and feed to sanitation.
+    start = timeit.default_timer()
     base_rating = soundex(string)
     if not concurrent:
+        print("Analyzing in one thread.")
         res = Ranker()
         base_rating = soundex(string)
         for line in file:
@@ -227,12 +230,15 @@ def main(file, string, concurrent):
                 diff = diff_score(base_rating, word_rating)
                 res.add_word(diff, word)
     else:
+        print("Analyzing concurrently.")
         res = do_concurrent(base_rating, file)
 
     # TODO Clean up.
     from pprint import pprint
     # pprint(ratings.get_results())
     pprint(res.get_results())
+    end = timeit.default_timer()
+    pprint(f"Script took {end - start} seconds.")
 
 if __name__ == '__main__':
     main()
