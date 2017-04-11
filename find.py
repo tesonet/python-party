@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, wait, as_completed
 import timeit
-from functools import lru_cache
+from functools import lru_cache, partial
 import operator
 import re
 
@@ -175,47 +175,72 @@ class Ranker(object):
                     self.results.pop(max_diff)
                 self.results[score] = word
 
+    def merge_ranker(self, ranker):
+        """Merge another Ranker to this one."""
+        for score, word in ranker.results.items():
+            self.add_word(score, word)
+
     def get_results(self) -> list:
         """Return results sorted by key."""
+        # Do not consider the default value.
         if len(self.results) > 1 and 2000 in self.results:
             self.results.pop(2000)
         return sorted(self.results.items(), key=operator.itemgetter(0))
 
 
-def wrap_soundex(word):
-    return word, soundex(word)
+def gen_chunks(file, chunk_size=10000) -> list:
+    """Read `file` and yield the lines up to the `chunk_size` at a time."""
+    res = True
+    while res:
+        res = file.readlines(chunk_size)
+        if res:
+            yield res  # Read `chunk_size` chars worth of complete lines.
 
 
-def wrap_diff_score(base_rating, rating, word):
-    return word, diff_score(base_rating, rating)
+def analyze_chunk(chunk: list, base_rating: str) -> Ranker:
+    """Analyze a list of lines against the `base_rating`."""
+    rankings = Ranker()
+    for line in chunk:
+        # In case the line does not contain anything useful (for .decode).
+        if not line:
+            break
+        words = line.decode('utf-8')
+        sanitized_words = sanitize_string(words)
+        for word in sanitized_words:
+            word_rating = soundex(word)
+            diff = diff_score(base_rating, word_rating)
+            rankings.add_word(diff, word)
+    return rankings
 
 
-def do_concurrent(base_rating, file):
+def do_concurrent(base_rating, file, chunk_size=10000, max_workers=7):
+    """Analyze the file concurrently."""
+    # TODO Do not read the file until it is necessary for next analysis.
+    # Currently, the full file is mapped to the functions, meaning oen needs
+    # at least as much RAM as the size of file.
     ratings = Ranker()
-    rates = []
-    diffs = []
-    with ProcessPoolExecutor(max_workers=5) as executor:
-        for line in file:
-            words = sanitize_string(line.decode('utf-8'))
-            for word in words:
-                rates.append(executor.submit(wrap_soundex, word))
-    with ProcessPoolExecutor(max_workers=5) as exec2:
-        for wrapped_soundex in as_completed(rates):
-            word, rating = wrapped_soundex.result()
-            diffs.append(exec2.submit(wrap_diff_score, base_rating, rating, word))
-    for wrapped_diff in as_completed(diffs):
-        word, diff = wrapped_diff.result()
-        ratings.add_word(diff, word)
+    analyze = partial(analyze_chunk, base_rating=base_rating)
+    # This can act as a single-thread as well.
+    # for chunk_ratings in map(analyze, gen_chunks(file)):
+    #     ratings.merge_ranker(chunk_ratings)
+
+    # This is the multi-process part.
+    executor = ProcessPoolExecutor(max_workers=max_workers)
+    for chunk_ratings in executor.map(analyze, gen_chunks(file, chunk_size)):
+        ratings.merge_ranker(chunk_ratings)
+    executor.shutdown(wait=True)  # Wait for all executors to finish.
+
     return ratings
 
 
 @click.command()
 @click.argument('file', type=click.File('rb'))
 @click.argument('string')
-@click.option('--concurrent', default=False)
-def main(file, string, concurrent):
+@click.option('--concurrent', '-c', is_flag=True)
+@click.option('--workers', '-w', default=1)
+@click.option('--chunk_size', '-cs', default=10000)
+def main(file, string, concurrent, workers, chunk_size):
     """Main entry to script."""
-    # TODO Lazify file read and feed to sanitation.
     start = timeit.default_timer()
     base_rating = soundex(string)
     if not concurrent:
@@ -230,12 +255,18 @@ def main(file, string, concurrent):
                 diff = diff_score(base_rating, word_rating)
                 res.add_word(diff, word)
     else:
-        print("Analyzing concurrently.")
-        res = do_concurrent(base_rating, file)
+        print(f"Analyzing concurrently, using {workers} workers "
+              f"and chunk_size of {chunk_size}.")
+        if chunk_size < 4000:
+            print("WARNING: You might experience lower performance due to "
+                  "chunk_size being low (less than 4000).\n"
+                  "It is recommended to give 1500 chunk_size for each worker "
+                  "with a minimum of 4000.")
+        res = do_concurrent(base_rating, file,
+                            max_workers=workers, chunk_size=chunk_size)
 
     # TODO Clean up.
     from pprint import pprint
-    # pprint(ratings.get_results())
     pprint(res.get_results())
     end = timeit.default_timer()
     pprint(f"Script took {end - start} seconds.")
