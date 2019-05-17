@@ -6,7 +6,7 @@ Had lot of fun making this, real challenge was to get multiprocessing to use lea
 
 ## Running/Options
 
-    $ ./find.py [OPTIONS] [FILEPATH] [KEYWORD]
+    $ python find.py [OPTIONS] [FILEPATH] [KEYWORD]
 
     --workers -w                    set number or workers, default : 1
 
