@@ -6,11 +6,16 @@ Had lot of fun making this, real challenge was to get multiprocessing to use lea
 
 ## Running/Options
 
-    $ python find.py [OPTIONS] [FILEPATH] [KEYWORD]
+    $ python3 find.py [OPTIONS] [FILEPATH] [KEYWORD]
 
     --workers -w                    set number or workers, default : 1
 
     --chunk_size -cs                set chunk size(kb) default: 2kb for single process and 128 for worker>1
+    
+    or make it executable with:
+    
+    #!/usr/bin/env python3 in first line find.py
+    $ chmod +x find.py
 
 ## Requirements
 
@@ -20,7 +25,7 @@ Had lot of fun making this, real challenge was to get multiprocessing to use lea
 
 To run tests, run below in main directory:
 
-    python -m unittest
+    python3 -m unittest
 
 You can then choose to include speed test via console input. This will take a while, depending on your os; more below.
 
