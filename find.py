@@ -1,10 +1,5 @@
 """Script for finding words similar to keyword using soundex index"""
 
-#pylint: disable=line-too-long
-#pylint: disable=no-value-for-parameter
-#pylint: disable=missing-docstring
-#pylint: disable=useless-return
-
 import re
 import unicodedata
 import time
