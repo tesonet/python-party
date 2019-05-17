@@ -2,6 +2,8 @@
 
 Had lot of fun making this, real challenge was to get multiprocessing to use least memory. There are some caveats in Python when it goes to that, more below. Overall I think it turned out ok. 
 
+    Python version used: 3.6.7
+
 ## Running/Options
 
     $ ./find.py [OPTIONS] [FILEPATH] [KEYWORD]
